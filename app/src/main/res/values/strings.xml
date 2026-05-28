@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Nocora</string>
+
+    <string name="key_horizontal">horizontal</string>
+    <string name="key_vertical">vertical</string>
+    <string name="key_page">page</string>
+    <string name="key_search">search</string>
+</resources>
