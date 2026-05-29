@@ -64,10 +64,11 @@ class DocumentActivity : ComponentActivity() {
                     viewModel.bitmapList.values.forEach { it.recycle() }
                     viewModel.bitmapList.clear()
 
+                    viewModel.outlineList.clear()
+
                     viewModel.document?.destroy()
                     viewModel.document = null
 
-                    viewModel.outlinePage = 0
                     viewModel.currentPage = 0
                     viewModel.pageCount = 0
 

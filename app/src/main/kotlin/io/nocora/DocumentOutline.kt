@@ -1,7 +1,6 @@
 package io.nocora
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,25 +16,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DocumentOutline(viewModel: DocumentViewModel) {
+fun DocumentOutline(viewModel: DocumentViewModel, outlineClickable: Modifier.(String) -> Modifier) {
     BackHandler { viewModel.isOutlineVisible = false }
 
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp)) {
-        items(viewModel.outlineList) {
-            Text(
-                text = it.title,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .clickable {
-                            val doc = viewModel.document
-                            if (doc != null) {
-                                viewModel.outlinePage = doc.resolveLink(it.uri).page
-                            }
-                            viewModel.isOutlineVisible = false
-                        }
-                        .padding(12.dp),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(12.dp),
+        content = {
+            items(
+                items = viewModel.outlineList,
+                itemContent = {
+                    Text(
+                        text = it.title,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth().outlineClickable(it.uri).padding(12.dp),
+                    )
+                },
             )
-        }
-    }
+        },
+    )
 }

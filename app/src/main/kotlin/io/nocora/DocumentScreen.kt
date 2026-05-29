@@ -1,6 +1,7 @@
 package io.nocora
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -69,13 +70,6 @@ fun DocumentScreen(viewModel: DocumentViewModel) {
     LaunchedEffect(viewModel.currentPage) { sliderState.value = viewModel.currentPage.toFloat() }
 
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(viewModel.outlinePage) {
-        when (viewModel.viewerState) {
-            R.string.key_horizontal -> scope.launch { pagerState.scrollToPage(viewModel.outlinePage) }
-            R.string.key_vertical -> scope.launch { listState.scrollToItem(viewModel.outlinePage) }
-        }
-    }
 
     val modifier =
         Modifier.fillMaxSize()
@@ -148,29 +142,44 @@ fun DocumentScreen(viewModel: DocumentViewModel) {
                 },
             )
 
+    fun Modifier.outlineClickable(uri: String): Modifier =
+        clickable(
+            onClick = {
+                viewModel.document?.resolveLink(uri)?.let {
+                    when (viewModel.viewerState) {
+                        R.string.key_horizontal -> scope.launch { pagerState.scrollToPage(it.page) }
+                        R.string.key_vertical -> scope.launch { listState.scrollToItem(it.page) }
+                    }
+                }
+                viewModel.isOutlineVisible = false
+            }
+        )
+
     sliderState.onValueChangeFinished = {
         when (viewModel.viewerState) {
             R.string.key_horizontal -> scope.launch { pagerState.scrollToPage(sliderState.value.roundToInt()) }
             R.string.key_vertical -> scope.launch { listState.scrollToItem(sliderState.value.roundToInt()) }
         }
-        // viewModel.outlinePage = sliderState.value.roundToInt()
     }
 
     AppTheme(
         content = {
-            Crossfade(targetState = viewModel.isOutlineVisible) {
-                if (it) {
-                    DocumentOutline(viewModel)
-                } else {
-                    Scaffold(
-                        bottomBar = { DocumentToolbar(viewModel, sliderState, textFieldState) },
-                        content = {
-                            DocumentViewer(viewModel, pagerState, listState, modifier, width, height, density)
-                            DocumentCard(viewModel, width, height, density)
-                        },
-                    )
-                }
-            }
+            Crossfade(
+                targetState = viewModel.isOutlineVisible,
+                content = {
+                    if (it) {
+                        Scaffold(content = { DocumentOutline(viewModel, Modifier::outlineClickable) })
+                    } else {
+                        Scaffold(
+                            bottomBar = { DocumentToolbar(viewModel, sliderState, textFieldState) },
+                            content = {
+                                DocumentViewer(viewModel, pagerState, listState, modifier, width, height, density)
+                                DocumentCard(viewModel, width, height, density)
+                            },
+                        )
+                    }
+                },
+            )
         }
     )
 }

@@ -42,36 +42,16 @@ class DocumentViewModel : ViewModel() {
 
     var pageCount by mutableStateOf(0)
     var currentPage by mutableStateOf(0)
-    var outlinePage by mutableStateOf(0)
 
     var document by mutableStateOf<Document?>(null)
 
-    val bitmapList = mutableStateMapOf<Int, Bitmap>()
-
     var outlineList = mutableStateListOf<Outline>()
+
+    val bitmapList = mutableStateMapOf<Int, Bitmap>()
 
     var bitmapJob by mutableStateOf<Job?>(null)
 
     private val mutex = Mutex()
-
-    fun goToOutline(outline: Outline) {
-        document?.let { currentPage = it.resolveLink(outline.uri).page }
-    }
-
-    private fun flattenOutline(
-        outlines: Array<Outline>,
-        result: MutableList<Outline> = mutableListOf(),
-    ): List<Outline> {
-
-        for (outline in outlines) {
-
-            result.add(outline)
-
-            outline.down?.let { result.addAll(flattenOutline(it)) }
-        }
-
-        return result
-    }
 
     suspend fun openDocument(context: Context, uri: Uri): Document =
         withContext(Dispatchers.IO) {
@@ -101,17 +81,26 @@ class DocumentViewModel : ViewModel() {
         viewModelScope.launch {
             document = openDocument(context, uri)
             document?.let {
+                it.getMetaData(Document.META_INFO_TITLE).let { title = it }
+                it.getMetaData(Document.META_INFO_AUTHOR).let { author = it }
+                it.getMetaData(Document.META_INFO_SUBJECT).let { subject = it }
+                it.getMetaData(Document.META_INFO_KEYWORDS).let { keywords = it }
+                it.getMetaData(Document.META_INFO_CREATIONDATE).let { creationDate = it }
+                it.getMetaData(Document.META_INFO_MODIFICATIONDATE).let { modificationDate = it }
+                it.getMetaData(Document.META_INFO_CREATOR).let { creator = it }
+                it.getMetaData(Document.META_INFO_PRODUCER).let { producer = it }
                 it.countPages().let { pageCount = it }
-                it.getMetaData(Document.META_INFO_TITLE)?.let { title = it }
-                it.getMetaData(Document.META_INFO_AUTHOR)?.let { author = it }
-                it.getMetaData(Document.META_INFO_SUBJECT)?.let { subject = it }
-                it.getMetaData(Document.META_INFO_KEYWORDS)?.let { keywords = it }
-                it.getMetaData(Document.META_INFO_CREATIONDATE)?.let { creationDate = it }
-                it.getMetaData(Document.META_INFO_MODIFICATIONDATE)?.let { modificationDate = it }
-                it.getMetaData(Document.META_INFO_CREATOR)?.let { creator = it }
-                it.getMetaData(Document.META_INFO_PRODUCER)?.let { producer = it }
-                outlineList.clear()
-                it.loadOutline()?.let { outlineList.addAll(flattenOutline(it)) }
+                it.loadOutline().let {
+                    outlineList.addAll(
+                        buildList {
+                            fun visit(outline: Outline) {
+                                add(outline)
+                                outline.down?.forEach(::visit)
+                            }
+                            it.forEach(::visit)
+                        }
+                    )
+                }
             }
         }
     }

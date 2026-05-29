@@ -56,19 +56,6 @@ fun DocumentCard(viewModel: DocumentViewModel, width: Int, height: Int, density:
                                     Cell(name = "Producer", value = viewModel.producer)
                                 },
                             )
-                            // LazyColumn(
-                            //     content = {
-                            //         items(viewModel.outlineList) {
-                            //             Text(
-                            //                 text = it.title ?: "Untitled",
-                            //                 modifier =
-                            //                     Modifier.fillMaxWidth()
-                            //                         .clickable { viewModel.goToOutline(it) }
-                            //                         .padding(24.dp),
-                            //             )
-                            //         }
-                            //     }
-                            // )
                         }
                     )
                 },
