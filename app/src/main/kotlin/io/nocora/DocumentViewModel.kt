@@ -90,7 +90,7 @@ class DocumentViewModel : ViewModel() {
                 it.getMetaData(Document.META_INFO_CREATOR).let { creator = it }
                 it.getMetaData(Document.META_INFO_PRODUCER).let { producer = it }
                 it.countPages().let { pageCount = it }
-                it.loadOutline().let {
+                it.loadOutline()?.let {
                     outlineList.addAll(
                         buildList {
                             fun visit(outline: Outline) {
